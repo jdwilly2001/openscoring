@@ -6,8 +6,8 @@
  * Openscoring is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
  *
+ * (at your option) any later version.
  * Openscoring is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -149,7 +149,12 @@ public class Main {
 		if(startDeployment){
 			if(usePollingMethod){
 				PollingDirectoryDeployer pollingDeployer = new PollingDirectoryDeployer();
-				String modelCollectionUrl = String.format("http://%s:%d/%s/model", this.host, this.port, this.contextPath);
+
+				String modelHost = this.host == null ? "localhost" : this.host;
+
+				String modelCollectionUrl = String.format("http://%s:%d%s/model", modelHost, this.port, this.contextPath);
+
+				System.out.println("Model colleciton URL is : " + modelCollectionUrl);
 				pollingDeployer.setModelCollection(modelCollectionUrl);
 				pollingDeployer.setDir(this.modelDir);
 				pollingDeployer.setPollIntervalMs(this.pollIntervalMs);
