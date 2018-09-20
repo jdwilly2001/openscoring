@@ -30,7 +30,9 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.servlet.ServletContainer;
+
 import org.openscoring.service.Openscoring;
+import org.openscoring.client.PollingDirectoryDeployer;
 
 public class Main {
 
@@ -65,6 +67,30 @@ public class Main {
 		description = "Server port"
 	)
 	private int port = 8080;
+
+	@Parameter (
+	  names = {"--auto-deploy"},
+		description = "Start the auto deployer thread"
+	)
+	private boolean startDeployment = false;
+
+	@Parameter (
+	  names = {"--deployer-polling"},
+		description = "Enables the deployer polling method instead of inotify"
+	)
+	private boolean usePollingMethod = false;
+
+	@Parameter (
+		names = {"--poll-interval"},
+		description = "Time in ms to wait between scan operatoins"
+	)
+	private long pollIntervalMs;
+
+	@Parameter (
+	  names = {"--model-dir"},
+		description = "Directory to watch for auto deployment"
+	)
+	private File modelDir = null;
 
 
 	static
@@ -119,6 +145,19 @@ public class Main {
 		}
 
 		Server server = createServer(address);
+
+		if(startDeployment){
+			if(usePollingMethod){
+				PollingDirectoryDeployer pollingDeployer = new PollingDirectoryDeployer();
+				String modelCollectionUrl = String.format("http://%s:%d/%s/model", this.host, this.port, this.contextPath);
+				pollingDeployer.setModelCollection(modelCollectionUrl);
+				pollingDeployer.setDir(this.modelDir);
+				pollingDeployer.setPollIntervalMs(this.pollIntervalMs);
+
+				Thread deployPollThread = new Thread(pollingDeployer);
+				deployPollThread.start();
+			}
+		}
 
 		server.start();
 		server.join();
